@@ -1,0 +1,50 @@
+ public IList<ProductMaster> UpdateGetProduct(long pacsId, int branchId)
+        {
+            try
+            {
+
+                IList<ProductMaster> listmaster = new List<ProductMaster>();
+
+
+                string sqlQuery = @"SELECT productcode,ProductDescription,ProductShortDescription,ProductRegionalDesc,ProductTypeID,UserLevel,Slno
+FROM cm_productmaster where SlNo in(
+SELECT distinct ProductDefinitionSlNo FROM br_productpurposemapping 
+where pacsid = :pacsid and branchid = :branchid )";
+
+
+
+
+                IQuery qry = session.CreateSQLQuery(sqlQuery);
+
+                qry.SetParameter("pacsid", pacsId);
+                qry.SetParameter("branchid", branchId);
+
+
+                IList<object[]> results = qry.List<object[]>();
+
+
+                foreach (var row in results)
+                {
+                    ProductMaster obj = new ProductMaster();
+                    obj.ProductCode = (int)row[0];
+                    obj.ProductDescription = (string)row[1];
+                    obj.ProductShortDescription = (string)row[2];
+                    obj.ProductRegionalDesc = (string)row[3];
+                    obj.ProductTypeID = new ProductTypeMaster();
+                    obj.ProductTypeID.ProductTypeID = (int)row[4];
+                    obj.UserLevel = new UserLevelMaster();
+                    obj.UserLevel.UserLevelCode = (int)row[5];
+                    obj.Slno = (int)row[6];
+
+
+                    listmaster.Add(obj);
+                }
+
+                return listmaster;
+            }
+            catch (Exception ex)
+            {
+                log.Error(ex); //TransactionErrorLogBL.TrackErrorLog(ex.Message );
+                return null;
+            }
+        }
